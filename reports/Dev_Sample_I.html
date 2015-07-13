@@ -1,0 +1,217 @@
+
+<script type="text/javascript" src="../../../../dhis-web-commons/javascripts/jQuery/jquery.min.js"></script>
+<script type="text/javascript" src="../scripts/contextChanges.js"></script>
+<link type="text/css" rel="stylesheet" media="screen" href="../../../../dhis-web-commons/css/light_blue/light_blue.css"/>
+<link type="text/css" rel="stylesheet" media="screen" href="../../../../dhis-web-commons/css/widgets.css"/>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/screen.css"/>
+
+
+<script type="text/javascript">
+
+//var orgUnit = dhis2.report.organisationUnit;
+//var orgUnitHierarchy = dhis2.report.organisationUnitHierarchy;
+//var orgUnitChildren = dhis2.report.organisationUnitChildren;
+//var period = dhis2.report.periods;
+
+var dhis2={};
+dhis2.report={};
+var varJSON;
+function getQueryVariable(variable)
+{
+	var query = window.location.search.substring(1);
+	var vars = query.split("&");
+	for (var i=0;i<vars.length;i++) {
+		var pair = vars[i].split("=");
+		if(pair[0] == variable){return pair[1];}
+	}
+	return(false);
+}
+function init(){
+
+	var ouUid = getQueryVariable("ou");
+
+	$.ajax({
+		url: dhis2BaseUrl+"organisationUnits/"+ouUid+".json?fields=id,name,code,level,children",
+		async: false,
+		success: function (data) {
+			dhis2.report.organisationUnit = {
+												"id" : data.id,
+												"code" : data.code,
+												"name":data.name
+											};
+
+			dhis2.report.organisationUnitChildren = data.children;
+
+			dhis2.report.organisationUnitHierarchy = {
+				"length" : data.level
+			}
+		}
+	});
+
+}
+$(document).ready(function() {
+
+	init();
+	var orgUnit = dhis2.report.organisationUnit;
+var orgUnitHierarchy = dhis2.report.organisationUnitHierarchy;
+var orgUnitChildren = dhis2.report.organisationUnitChildren;
+	if (getParameterByName('dx') != ''){
+		var sJurl = dhis2BaseUrl+'analytics.json?dimension=dx:' + getParameterByName('dx') + '&dimension=ou:LEVEL-' + (orgUnitHierarchy.length + 1) + ';' + orgUnit.id + '&dimension=pe:' + getParameterByName('pe') + '&displayProperty=NAME&outputIdScheme=ID';
+	}
+	else{
+		var sJurl = dhis2BaseUrl+'analytics.json?dimension=dx:A9s6E9l4W8z;Bt5H0q5L3h7;eo2N8j1S9k4;Dv1K3w4Z3u0;cl2E3i6X5z9&dimension=ou:LEVEL-' + (orgUnitHierarchy.length + 1) + ';' + orgUnit.id + '&dimension=pe:' + getParameterByName('pe') + '&displayProperty=NAME&outputIdScheme=ID';
+	}
+	console.log(sJurl);
+
+	$.ajax({
+		url: sJurl,
+		success: function (data) {
+			LoadHTMLresultsTable(data,'#DataBlock1Content');
+		}
+	});
+
+	$( "#TITLE_DATE_RANGE" ).html('<strong style="font-size:14pt;">Click on value to drill-down</strong>');
+
+}); //document ready function
+
+function LoadHTMLresultsTable(myData,sDestination){
+
+	var i;
+	var p;
+	var sReturn = '';
+	var sBGcol;
+	var sCol;
+	var iNum = 0;
+	var iDen = 0;
+	var sLastOU;
+
+	sReturn += '<table class="listTable gridTable"><thead><tr>';
+	
+	console.log(myData.metaData.names);
+	
+	var objNames = JSON.parse(JSON.stringify(myData.metaData.names));
+
+	for(i = 0; i < myData.headers.length; i++) {
+		sReturn += '<th>' + myData.headers[i].name + '</th>';
+	}
+
+	sReturn += '</tr></tr></thead>';
+	sReturn += '<tbody>';
+
+	for(i = 0; i < myData.rows.length; i++) {
+		sReturn += '<tr>';
+		for(p = 0; p < myData.headers.length; p++) {
+			if (myData.headers[p].name == 'value'){
+				sReturn += '<td><a href='+window.location.pathname+'?uid=' + getParameterByName('uid') + '&pe=' + getParameterByName('pe') + '&ou=' +  myData.rows[i][1] + '&dx=' +  myData.rows[i][0] + '>' + myData.rows[i][p] + '</a></td>';
+			}
+			else{
+				sReturn += '<td>' + ReturnLookupName(objNames,myData.rows[i][p]) + '</td>';
+			}
+		}
+		sReturn += '</tr>';
+	}
+
+	sReturn += '</tbody></table>';
+
+	document.all("loadingmessage").innerHTML = '';
+	document.all("ReportResults").style.display = 'block';
+
+	$(sDestination).html(sReturn);
+}
+
+function formatNumber(num)
+{
+    return ("" + num).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, function($1) { return $1 + " " });
+}
+
+function getParameterByName(name) {0
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function ReturnLookupValue(theData,dx,ou){
+
+	var i;
+	var sReturn = '';
+
+	for(i = 0; i < theData.rows.length; i++) {
+	
+		if (theData.rows[i][0] == dx)
+		{
+			if (theData.rows[i][1] == ou)
+			{
+				sReturn = theData.rows[i][2];
+			}
+		}
+
+	}
+
+	return sReturn;
+}
+
+function ReturnLookupName(theData,Val){
+
+	sReturn = theData[Val];
+	return  sReturn;
+}
+
+function ReturnPreviousMonthName(){
+	var d = new Date();
+	var monthNames = ["January", "February", "March", "April", "May", "June",
+	  "July", "August", "September", "October", "November", "December"];
+	return monthNames[d.getMonth()-1];
+}
+function ReturnPreviousMonthYear(){
+	var y = new Date();
+	if (y.getMonth() == 12){
+		return y.getFullYear()-1;
+	}
+	else{
+		return y.getFullYear();
+	}
+}
+
+function ReturnMonthAbbr(iMonth){
+	var d = new Date();
+	var monthShortNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	return monthShortNames[iMonth];
+}
+</script>
+
+<div id='loadingmessage' name='loadingmessage' style=''>
+<span id='loading' name='loading' style='width:98%;height:98%;text-align:center;'>
+<div style='color:#999999;font-family:arial;font-weight:700;font-size:11pt;width:25%;border:1px solid #F5F5F5;padding:4px;vertical-align:middle;' class='rounded'><Img Src='../images/ajax-loader-circle.gif'>&nbsp;&nbsp;PREPARING REPORT DATA</div>
+</span>
+</div>
+<div class="page">
+<table style='width:900px;height:100%;display:none;' id='ReportResults' name='ReportResults'>
+
+ <tr>
+  <td style='width:75px;' rowspan=500>&nbsp;</td>
+  <td id='logoArea' name='logoArea' style='text-align:center;font-size:12pt;font-weight:700;vertical-align:middle;border:1px solid #E6E6E6;padding:5px;width:100%;' class='rounded'>
+	Custom Title goes here<br>
+	<span id='TITLE_DATE_RANGE' name='TITLE_DATE_RANGE' style='position:relative:left:-10px;top:-25px;'></span>
+  </td>
+ </tr>
+
+ <tr>
+  <td id='DataBlock1Content' name='DataBlock1Content' style='' colspan=2>
+ 
+  </td>
+ </tr>
+
+
+ <!-- # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # -->
+ 
+ <tr>
+  <td style='color:#CFCFCF;font-size:8pt;height:10px;' colspan=2>
+	&nbsp;
+  </td>
+ </tr>
+ <!-- # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # -->
+
+
+</table>
+</div>
