@@ -1,0 +1,472 @@
+<style type="text/css">
+
+	td
+	  {
+		  padding:2px;
+		  font-size:10.0pt;
+		  font-weight:400;
+		  font-style:normal;
+		  text-decoration:none;
+		  font-family:Arial;
+		  text-align:general;
+		  vertical-align:middle;
+		  border:none;
+	}
+	a, span
+	 {
+		  padding:4px;
+		  font-size:9.0pt;
+		  font-weight:400;
+		  font-style:normal;
+		  text-decoration:none;
+		  font-family:Tahoma,Verdana,Arial;
+		  font-size: 8pt;
+		  text-align:general;
+		  vertical-align:middle;
+		  border:none;
+	}
+	th.oucolheader
+	{
+		font-weight:700;
+		color:#000000;
+		font-size:9pt;
+		border:2px solid #000000;
+		vertical-align:bottom;
+		text-align:left;
+	}
+	.colheader
+	{
+		font-weight:700;
+		color:#101010;
+		border:1px solid #CFCFCF;
+		padding:4px;
+	}
+	th.mycolheader
+	{
+		font-weight:700;
+		color:#000000;
+		font-size:9pt;
+		border:2px solid #000000;
+		text-align:center;
+	}
+	td.subtotal
+	{
+		background-Color: #D4D4D4;
+		font-weight: 700;
+		border:1px solid #000000;
+		padding:2px;
+		text-align:left;
+	}
+	td.subtotalyellow
+	{
+		background-Color: #F4FF5C;	
+		font-weight: 700;
+		border:1px solid #000000;
+		padding:2px;
+		text-align:left;
+	}
+	td.numericsubtotal
+	{
+		background-Color: #D4D4D4;
+		font-weight: 700;
+		border:1px solid #000000;
+		padding:2px;
+		text-align:right;
+	}
+	td.numericsubtotalyellow
+	{
+		background-Color: #F4FF5C;
+		font-weight: 700;
+		border:1px solid #000000;
+		padding:2px;
+		text-align:right;
+	}
+	td.data
+	{
+		font-weight:400;
+		color:#101010;
+		border:1px solid #000000;
+		padding:2px;
+	}
+	td.numericdata
+	{
+		font-weight:400;
+		color:#101010;
+		border:1px solid #000000;
+		padding:2px;
+		text-align:right;
+	}
+	td.border
+	{
+		border:1px solid #000000;
+		padding:2px;
+	}
+	.center
+	{
+		text-align:center;
+	}
+	.datablockTitle
+	{
+		font-size:16pt;
+		font-weight:700;
+		color:#121212;
+		padding:4px;
+	}
+	.datablockDescription
+	{
+		font-size:9pt;
+		font-weight:400;
+		color:#121212;
+		padding:8px;
+	}
+	.ReferenceCaption
+	{
+		font-weight:700;
+		color:#101010;
+		font-size:10pt;
+		text-align:left;
+		padding:10px;
+	}
+	.rounded
+	{
+		border-top-left-radius: 4px 4px;
+		border-bottom-left-radius: 4px 4px;
+		border-top-right-radius: 4px 4px;
+		border-bottom-right-radius: 4px 4px;
+	}
+</style>
+
+<script type="text/javascript" src="http://nhird.health.gov.za/DHIS14_NIDS13/aspcode/scripts/greganalytics.js"></script>
+
+<script type="text/javascript">
+
+var orgUnit = dhis2.report.organisationUnit;
+var orgUnitHierarchy = dhis2.report.organisationUnitHierarchy;
+var orgUnitChildren = dhis2.report.organisationUnitChildren;
+var period = dhis2.report.periods;
+
+var varJSON;
+
+$(document).ready(
+
+	function() {
+
+	if (getParameterByName('dx') != ''){
+		var sJurl = '../api/analytics.json?dimension=dx:' + getParameterByName('dx') + '&dimension=pe:2015&dimension=ou:LEVEL-' + orgUnitHierarchy.length + ';LEVEL-' + (orgUnitHierarchy.length + 1) + ';' + orgUnit.id + '&displayProperty=NAME&outputIdScheme=ID'
+	}
+	else{
+		var sJurl = '../api/analytics.json?dimension=dx:Ar2V5v1R7z3;ax9L3u7D7j2;K2y99DiLZ8h;dGfV6PsAVJ4;F0e5F9f6V9c;A9s6E9l4W8z;eo2N8j1S9k4;cl2E3i6X5z9;de8U1i1B2v7;Bg6Y4v8B2e5;O2c3P9y6J8q;Ct3N9u6D5y9;di9O3l4W3v4;G5j1I9p6P5w;Br4N9p3C7o1;oiD9MR1zQnY;Df3L4i3F5u2;aq1B3u9R5m0;co2P2n2G1l1&dimension=pe:2015&dimension=ou:LEVEL-' + orgUnitHierarchy.length + ';LEVEL-' + (orgUnitHierarchy.length + 1) + ';' + orgUnit.id + '&displayProperty=NAME&outputIdScheme=ID'
+	}
+
+	$.ajax({
+		url: sJurl,
+		success: function (data) {
+			LoadHTMLresultsTable(data,'#DataBlock1Content');
+		}
+	});
+
+	$( "#TITLE_DATE_RANGE" ).html('<strong style="font-size:14pt;">Z-Score sample report</strong>');
+	
+
+}); //document ready function
+
+function LoadHTMLresultsTable(myData,sDestination){
+
+	var i;
+	var p;
+	var iCounter = 0;
+	var sReturn = '';
+	var sBGcol;
+	var sCol;
+	var iNum = 0;
+	var iDen = 0;
+	var sLastOU;
+	var iStDev;
+	var iPAvg;
+	var iCAvg;
+	var iGrowthSent;
+	var ArrZScores = new Array();
+	var sTemp;
+	var sLastDx;
+	var PassAvg;
+	var PassStDev;
+
+	var IndGrowthSentiment = '../api/sqlViews/j0VYIhxNIVl/data.json';
+	var IndSentJ = $.ajax({url:IndGrowthSentiment, async: false}).responseText; 
+	var IndSentJSON = JSON.parse(IndSentJ);
+
+	if (getParameterByName('dx') != ''){
+		var sInnerUrl = '../api/analytics.json?dimension=dx:' + getParameterByName('dx') + '&filter=pe:2015&dimension=ou:LEVEL-' + (orgUnitHierarchy.length+1) + ';' + orgUnit.id + '&displayProperty=NAME&outputIdScheme=ID'
+	}
+	else{
+		var sInnerUrl = '../api/analytics.json?dimension=dx:Ar2V5v1R7z3;ax9L3u7D7j2;K2y99DiLZ8h;dGfV6PsAVJ4;F0e5F9f6V9c;A9s6E9l4W8z;eo2N8j1S9k4;cl2E3i6X5z9;de8U1i1B2v7;Bg6Y4v8B2e5;O2c3P9y6J8q;Ct3N9u6D5y9;di9O3l4W3v4;G5j1I9p6P5w;Br4N9p3C7o1;oiD9MR1zQnY;Df3L4i3F5u2;aq1B3u9R5m0;co2P2n2G1l1&filter=pe:2015&dimension=ou:LEVEL-' + (orgUnitHierarchy.length+1) + ';' + orgUnit.id + '&displayProperty=SHORTNAME&outputIdScheme=ID'
+	}
+
+	var sInnerJ = $.ajax({url:sInnerUrl, async: false}).responseText; 
+	var sInnerJSON = JSON.parse(sInnerJ);
+
+	sReturn += '<table class="listTable gridTable"><thead><tr>';
+
+	var objNames = JSON.parse(JSON.stringify(myData.metaData.names));
+
+	for(i = 0; i < myData.headers.length; i++) {
+		if (myData.headers[i].name == 'value'){
+			sReturn += '<th>' + 'Indicator<br>Value' + '</th>';
+		}
+		else
+		{
+			sReturn += '<th>' + myData.headers[i].name + '</th>';
+		}
+	}
+
+	sReturn += '<th>' + 'Regional<br>Average' + '</th>';
+	sReturn += '<th>' + 'Std<br>Deviation' + '</th>';
+	sReturn += '<th>' + 'Growth-Sentiment' + '</th>';
+	sReturn += '<th>' + 'Z-Score Chart' + '</th>';
+	sReturn += '</tr></tr></thead>';
+	sReturn += '<tbody>';
+
+	//var array = [58.7,49.7,66.3,59,55.7,52.6,57.4,51.1,56];
+
+	average = function(a) {
+	  var r = {mean: 0, variance: 0, deviation: 0}, t = a.length;
+	  for(var m, s = 0, l = t; l--; s += a[l]);
+	  for(m = r.mean = s / t, l = t, s = 0; l--; s += Math.pow(a[l] - m, 2));
+	  return r.deviation = Math.sqrt(r.variance = s / t), r;
+	}
+
+	/*
+	outputResult(
+		"mean      = " + x.mean + "<br />" +
+		"deviation = " + x.deviation + "<br />" +
+		"variance  = " + x.variance + "<br /><br />"
+	);
+	*/
+
+	for(i = 0; i < myData.rows.length; i++) {
+
+		if (myData.rows[i][2] != getParameterByName('ou')){
+
+			if (myData.rows[i][0] != sLastDx){
+				sLastDx = myData.rows[i][0];
+				var x = average(ReturnArrValues(sInnerJSON,0,sLastDx,2));
+				iStDev = x.deviation;
+			}
+
+			sReturn += '<tr>';
+
+			//iStDev = ReturnLookupDxPeOu(sInnerJSON,myData.rows[i][0],myData.rows[i][1],getParameterByName('ou'));
+			iPAvg = ReturnLookupDxPeOu(myData,myData.rows[i][0],myData.rows[i][1],getParameterByName('ou'));
+			iGrowthSent = ReturnLookupDx(IndSentJSON,myData.rows[i][0]);
+
+			for(p = 0; p < myData.headers.length; p++) {
+				if (myData.headers[p].name == 'value'){
+					if (getParameterByName('pavg') != ''){
+						PassAvg = getParameterByName('pavg');
+						iPAvg = PassAvg;
+						PassStDev = getParameterByName('pstd');
+						iStDev = PassStDev
+					}
+					else{
+						PassAvg = iPAvg;
+						PassStDev = iStDev;
+					}
+					if (orgUnitHierarchy.length == 4){
+						sReturn += '<td data-ouvalue="' + myData.rows[i][p] + '" >' + myData.rows[i][p] + '</td>';
+					}
+					else{
+						sReturn += '<td><a href="generateHtmlReport.action?uid=' + getParameterByName('uid') + '&ou=' +  myData.rows[i][2] + '&dx=' +  myData.rows[i][0] + '&pavg=' + PassAvg + '&pstd=' + PassStDev + '">' + myData.rows[i][p] + '</a></td>';
+					}
+					iCAvg = myData.rows[i][p];
+				}
+				else{
+					sReturn += '<td nowrap>' + ReturnLookupName(objNames,myData.rows[i][p]) + '</td>';
+				}
+			}
+
+			sReturn += '<td nowrap data-dx="' + myData.rows[i][0] + '" data-pe="' + myData.rows[i][1] + '" data-ou="' + getParameterByName('ou') + '">' + iPAvg + '</td>';
+			sReturn += '<td nowrap data-dx="' + myData.rows[i][0] + '" data-pe="' + myData.rows[i][1] + '" data-ou="' + getParameterByName('ou') + '">' + iStDev + '</td>';
+			sReturn += '<td>' + iGrowthSent + '</td>';
+			sReturn += '<td id="' + myData.rows[i][0] + myData.rows[i][1] + myData.rows[i][2] + '" style="width:400px;height:20px;" data-value="' + iCAvg + '" data-parentvalue="' + iPAvg + '" data-stdev="' + iStDev + '" data-growthsentiment="' + iGrowthSent + '" data-mean="' + x.mean + '" >' + '' + '</td>';
+			sReturn += '</tr>';
+
+			ArrZScores[iCounter] = (myData.rows[i][0] + myData.rows[i][1] + myData.rows[i][2] + ',' + iCAvg + ',' + iPAvg + ',' + iStDev + ',' + iGrowthSent + ',' + PassAvg);
+			iCounter += 1;
+
+		}
+	}
+
+	sReturn += '</tbody></table>';
+
+	document.all("loadingmessage").innerHTML = '';
+	document.all("ReportResults").style.display = 'block';
+
+	$(sDestination).html(sReturn);
+	
+	console.log(ArrZScores.length);
+
+	for(i = 0; i < ArrZScores.length; i++) {
+	
+		sTemp = ArrZScores[i].toString();
+		
+		if (sTemp.length > 0){
+
+			var myArr = sTemp.split(",");
+
+			if (parseFloat(myArr[2]) != 0){
+				getElasticSentimentPolarityChart(myArr[0],400,22,parseFloat(myArr[3]),parseFloat(myArr[1]),parseFloat(myArr[2]),parseFloat(myArr[5]),parseFloat(myArr[4]));
+			}
+
+		}
+
+	}
+
+}
+
+function ReturnArrValues(theData,iColTest,TestVal,iCol){
+
+	var i;
+	var MyArr = new Array();
+	var iIncr = 0;
+
+	for(i = 0; i < theData.rows.length; i++) {
+		if (theData.rows[i][iColTest] == TestVal){
+			MyArr[iIncr] = parseFloat(theData.rows[i][iCol]);
+			iIncr += 1;
+		}
+	}
+
+	return MyArr;
+
+}
+
+function formatNumber(num)
+{
+    return ("" + num).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, function($1) { return $1 + " " });
+}
+
+function getParameterByName(name) {0
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function ReturnLookupValue(theData,dx,ou){
+
+	var i;
+	var sReturn = '';
+
+	for(i = 0; i < theData.rows.length; i++) {
+	
+		if (theData.rows[i][0] == dx)
+		{
+			if (theData.rows[i][1] == ou)
+			{
+				sReturn = theData.rows[i][2];
+			}
+		}
+
+	}
+
+	return sReturn;
+}
+
+function ReturnLookupDxPeOu(theData,dx,pe,ou){
+
+	var i;
+	var sReturn = '';
+
+	for(i = 0; i < theData.rows.length; i++) {
+	
+		if (theData.rows[i][0] == dx)
+		{
+			if (theData.rows[i][1] == pe)
+			{
+				if (theData.rows[i][2] == ou)
+				{
+					sReturn = theData.rows[i][3];
+				}
+			}
+		}
+
+	}
+
+	return sReturn;
+}
+
+function ReturnLookupDx(theData,dx){
+
+	var i;
+	var sReturn = '';
+
+	for(i = 0; i < theData.rows.length; i++) {
+	
+		if (theData.rows[i][0] == dx)
+		{
+			sReturn = theData.rows[i][1];
+		}
+
+	}
+
+	return sReturn;
+}
+
+function ReturnLookupName(theData,Val){
+
+	sReturn = theData[Val];
+	return  sReturn;
+}
+
+function ReturnPreviousMonthName(){
+	var d = new Date();
+	var monthNames = ["January", "February", "March", "April", "May", "June",
+	  "July", "August", "September", "October", "November", "December"];
+	return monthNames[d.getMonth()-1];
+}
+function ReturnPreviousMonthYear(){
+	var y = new Date();
+	if (y.getMonth() == 12){
+		return y.getFullYear()-1;
+	}
+	else{
+		return y.getFullYear();
+	}
+}
+
+function ReturnMonthAbbr(iMonth){
+	var d = new Date();
+	var monthShortNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	return monthShortNames[iMonth];
+}
+
+</script>
+
+<div id='loadingmessage' name='loadingmessage' style=''>
+<span id='loading' name='loading' style='width:98%;height:98%;text-align:center;'>
+<div style='color:#999999;font-family:arial;font-weight:700;font-size:11pt;width:25%;border:1px solid #F5F5F5;padding:4px;vertical-align:middle;' class='rounded'><Img Src='../images/ajax-loader-circle.gif'>&nbsp;&nbsp;PREPARING REPORT DATA</div>
+</span>
+</div>
+
+<table style='width:900px;height:100%;display:none;' id='ReportResults' name='ReportResults'>
+
+ <tr>
+  <td id='DataBlock1Content' name='DataBlock1Content' style='' colspan=2>
+ 
+  </td>
+ </tr>
+
+
+ <!-- # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # -->
+ 
+ <tr>
+  <td style='color:#CFCFCF;font-size:8pt;height:10px;' colspan=2>
+	&nbsp;
+  </td>
+ </tr>
+ <!-- # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # -->
+
+
+</table>
+
+<script 
