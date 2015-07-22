@@ -1,0 +1,41 @@
+{
+    "version": "1.1",
+    "name": "NHIRD 2.0 Landing Page",
+    "description": "NHIRD version 2",
+    "launch_path": "/index.html",
+    "icons": {
+        "16": "/img/arrow-up.png",
+        "48": "/img/geekslabs.png",
+		"48": "/img/Germany.png",
+		"48": "/img/India.png",
+		"48": "/img/left-arrow.png",
+		"48": "/img/logo-big.png",
+		"48": "/img/right-arrow.png",
+		"48": "/img/Russia.png",
+		"48": "/img/sample-img-2.png",
+		"48": "/img/sample-img-3.png",
+		"48": "/img/Spain.png",
+		"48": "/img/user22.png",
+        "128": "/img/icons/mortar-128.png"
+    },
+    "developer": {
+        "name": "Me",
+        "url": "http://me.com"
+    },
+    "default_locale": "en",
+    "activities": {
+        "dhis": {
+            "href": "http://ndohstaging.dhis.dhmis.org"
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
